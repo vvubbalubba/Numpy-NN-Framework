@@ -1,3 +1,7 @@
 .ipynb_checkpoints
 .idea
+cifar-10-batches-py
+venv
+cifar-10-python.tar.gz
+tests.ipynb
 __pycache__/

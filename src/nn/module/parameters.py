@@ -1,4 +1,5 @@
 import numpy as np
+import math
 
 class Parameters:
     """Здесь будут храниться параметры и их градиенты
@@ -13,7 +14,7 @@ class Parameters:
         self.m = None
         self.v = None
 
-    def _init_params(self, method='kaiming'):
+    def init_params(self, method='kaiming'):
         """Инициализация параметров
 
         ---------
@@ -24,5 +25,6 @@ class Parameters:
             Пока доступен только 'kaiming'
         """
         if method=='kaiming':
-            # TODO: Реализовать инициализацию параметров модели методом Kaiming
-            self.params = None
+            m = 0
+            v = math.sqrt(2 / self.shape[0])
+            self.params = np.random.normal(m, v, size=self.shape)

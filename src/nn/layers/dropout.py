@@ -1,14 +1,23 @@
-from module.parameters import Parameters
+from nn.module.parameters import Parameters
 import numpy as np
 
 
-class Sigmoid:
-    """Реализует сигмоиду"""
+class Dropout:
+    """Реализует dropout
 
-    def __init__(self):
+    ---------
+    Параметры
+    ---------
+    p : float (default=0.5)
+        Вероятность зануления элемента
+    """
+
+    def __init__(self, p=0.5):
+        self.p = p
+
         self.params = Parameters(1)
-
-        self.out = None
+        self.regime = "Train"
+        self.mask = None
 
     def forward(self, inpt):
         """Реализует forward-pass
@@ -25,8 +34,13 @@ class Sigmoid:
         output : np.ndarray, shape=(M, N_in)
             Выход слоя
         """
-        # TODO: Реализовать рассчет sigmoid функции активации
-        self.out = None
+        if self.regime == "Eval":
+            return inpt
+
+        if self.mask is None:
+            self.mask = np.random.binomial(1, self.p, size=inpt.shape[1:])
+
+        self.out = inpt * self.mask / (1 - self.p)
 
         return self.out
 
@@ -38,7 +52,7 @@ class Sigmoid:
         """Возвращает параметры модели"""
         return self.params
 
-    def _zero_grad(self):
+    def zero_grad(self):
         """Обнуляет градиенты модели
 
         Не нужен в данном случае,
@@ -46,19 +60,20 @@ class Sigmoid:
         """
         pass
 
-    def _compute_gradients(self, grads):
+    def compute_gradients(self, grads):
         """Считает градиенты модели"""
-        # TODO: Реализовать рассчет градиентов
-        input_grads = None
+        if self.regime == "Eval":
+            raise RuntimeError("Нельзя посчитать градиенты в режиме оценки")
+        input_grads = grads * self.mask / (1 - self.p)
         return input_grads
 
-    def _train(self):
+    def train(self):
         """Переводит модель в режим обучения"""
-        pass
+        self.regime = "Train"
 
-    def _eval(self):
+    def eval(self):
         """Переводит модель в режим оценивания"""
-        pass
+        self.regime = "Eval"
 
     def __repr__(self):
-        return "Sigmoid()"
+        return f"Dropout(p={self.p})"

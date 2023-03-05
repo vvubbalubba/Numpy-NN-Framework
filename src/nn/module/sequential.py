@@ -40,22 +40,22 @@ class Sequential:
     def zero_grad(self):
         """Обнуляет все накопленные градиенты"""
         for module in self.modules:
-            module._zero_grad()
+            module.zero_grad()
 
-    def _compute_gradients(self, grads):
+    def compute_gradients(self, grads):
         """Считает градиенты всех элементов"""
         for module in reversed(self.modules):
-            grads = module._compute_gradients(grads)
+            grads = module.compute_gradients(grads)
 
     def train(self):
         """Переводит модель в режим обучения"""
         for module in self.modules:
-            module._train()
+            module.train()
 
     def eval(self):
         """Переводит модель в режим оценки и предсказания"""
         for module in self.modules:
-            module._eval()
+            module.eval()
 
     def __repr__(self):
         string = 'Sequential(\n\t'

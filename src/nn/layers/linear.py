@@ -22,7 +22,7 @@ class Linear:
         self.bias = bias
 
         self.W = Parameters((in_dim, out_dim))
-        self.W._init_params()
+        self.W.init_params()
 
         self.b = Parameters(out_dim)
 
@@ -44,8 +44,10 @@ class Linear:
             Выход слоя
         """
         self.inpt = inpt
-        # TODO: Реализовать forward pass для линейного слоя
-        forward_pass = None
+
+        forward_pass = np.dot(inpt, self.W.params)
+        if self.bias:
+            forward_pass += self.b.params
 
         return forward_pass
 
@@ -57,26 +59,26 @@ class Linear:
         """Возвращает параметры модели"""
         return (self.W, self.b)
 
-    def _zero_grad(self):
+    def zero_grad(self):
         """Обнуляет градиенты модели"""
         self.W.grads = np.zeros(self.W.shape)
         self.b.grads = np.zeros(self.b.shape)
 
-    def _compute_gradients(self, grads):
+    def compute_gradients(self, grads):
         """Считает градиенты модели"""
-        # TODO: Реализовать рассчет градиентов для линейного слоя
-        self.W.grads = None
 
+        self.W.grads = np.dot(self.inpt.T, grads)
         if self.bias:
-            self.b.grads = None
-        input_grads = None
+            self.b.grads = np.sum(grads, axis=0)
+        input_grads = np.dot(grads, self.W.params.T)
+
         return input_grads
 
-    def _train(self):
+    def train(self):
         """Переводит модель в режим обучения"""
         pass
 
-    def _eval(self):
+    def eval(self):
         """Переводит модель в режим оценивания"""
         pass
 

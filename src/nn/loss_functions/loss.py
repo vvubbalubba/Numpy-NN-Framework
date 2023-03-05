@@ -26,7 +26,7 @@ class Loss:
 
     def backward(self):
         """Запускает backpropagation"""
-        self.model._compute_gradients(self.grad)
+        self.model.compute_gradients(self.grad)
 
     def __repr__(self):
         return str(self.loss)

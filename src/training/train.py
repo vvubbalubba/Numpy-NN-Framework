@@ -83,6 +83,7 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
     * Если return_history=False
         None
     """
+    model.train()
     if timer:
         start_time = time.time()
 
@@ -92,6 +93,8 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
     elif optim_method == "GD":
         optimizer = GD(model.parameters(), lr=lr,
                        alpha1=alpha1, alpha2=alpha2)
+    else:
+        raise NotImplemented(f'Optimizer {optim_method} is not supporting. There are only ["Adam", "GD"]')
 
     if return_history:
         train_loss_history = []
@@ -116,13 +119,23 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
     if visualize_train:
         epoch_logger = EpochInformation(epochs, description)
 
+    train_loss = 0
     for epoch in range(epochs):
         epoch_start_time = time.time()
         model.train()
         dataloader = Dataloader(dataset, batch_size=batch_size)
+
         for vecs, labels in progress_bar(dataloader):
-            # TODO: Реализовать обучение модели на батче данных
-            pass
+            optimizer.zero_grad()
+
+            # vecs - [batch size, embedding size]
+            # predicts - [batch size, num classes]
+            predicts = model(vecs)
+
+            train_loss = hinge_loss(predicts, labels)
+
+            train_loss.backward()
+            optimizer.step()
 
         if (epoch + 1) % step == 0 or (epoch + 1) == epochs:
             if (epoch + 1) == epochs and ((epoch + 1) % step != 0):
@@ -131,15 +144,20 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
 
             model.eval()
 
-            dataloader = Dataloader(dataset, batch_size=len(dataset),
+            dataloader = Dataloader(dataset, batch_size=100,
                                     is_train=False)
 
+            train_acc = 0
+            acc_size = 0
             for vecs, labels in progress_bar(dataloader,
                                              text='Evaluating train'):
-                # TODO: Реализовать рассчет accuracy модели на батче данных
-                pass
+                predicts = model(vecs)
+                train_acc += np.sum(np.argmax(predicts.array, axis=-1) == labels)
+                acc_size += len(labels)
+            else:
+                train_acc /= acc_size
 
-            values['Train loss'] = train_loss
+            values['Train loss'] = train_loss.loss
             values['Train acc'] = train_acc
 
             num_params = 0
@@ -159,10 +177,13 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
             values['Grad/W'] = scale
 
             if return_history:
-                train_loss_history.append(train_loss)
+                train_loss_history.append(train_loss.loss)
                 train_acc_history.append(train_acc)
 
             if valid_dataset:
+                valid_acc = 0
+                valid_loss = 0
+                acc_size = 0
 
                 valid_dataloader = Dataloader(valid_dataset,
                                               batch_size=len(valid_dataset),
@@ -170,14 +191,21 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
 
                 for vecs, labels in progress_bar(valid_dataloader,
                                                  text='Evaluating valid'):
-                    # TODO: Реализовать рассчет accuracy модели на батче данных
-                    pass
 
-                values['Valid loss'] = valid_loss
+                    predicts = model(vecs)
+
+                    valid_loss = hinge_loss(predicts, labels)
+
+                    valid_acc += np.sum(np.argmax(predicts.array, axis=1) == labels)
+                    acc_size += len(labels)
+                else:
+                    valid_acc /= acc_size
+
+                values['Valid loss'] = valid_loss.loss
                 values['Valid acc'] = valid_acc
 
                 if return_history:
-                    valid_loss_history.append(valid_loss)
+                    valid_loss_history.append(valid_loss.loss)
                     valid_acc_history.append(valid_acc)
 
             if timer:
@@ -190,7 +218,7 @@ def train(dataset, model, epochs=100, lr=1e-3, batch_size=1000,
     if return_history:
         if valid_dataset:
             return train_loss_history, valid_loss_history, \
-                   train_acc_history, valid_acc_history
+                train_acc_history, valid_acc_history
         else:
             return train_loss_history, train_acc_history
     else:

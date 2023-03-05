@@ -1,8 +1,9 @@
-from module.parameters import Parameters
+from nn.module.parameters import Parameters
 import numpy as np
 
-class Tanh:
-    """Реализует гиперболический тангенс"""
+
+class Sigmoid:
+    """Реализует сигмоиду"""
 
     def __init__(self):
         self.params = Parameters(1)
@@ -24,8 +25,7 @@ class Tanh:
         output : np.ndarray, shape=(M, N_in)
             Выход слоя
         """
-        # TODO: Реализовать рассчет tanh функции активации
-        self.out = None
+        self.out = 1 / (1 + np.exp(-inpt))
 
         return self.out
 
@@ -37,7 +37,7 @@ class Tanh:
         """Возвращает параметры модели"""
         return self.params
 
-    def _zero_grad(self):
+    def zero_grad(self):
         """Обнуляет градиенты модели
 
         Не нужен в данном случае,
@@ -45,19 +45,18 @@ class Tanh:
         """
         pass
 
-    def _compute_gradients(self, grads):
+    def compute_gradients(self, grads):
         """Считает градиенты модели"""
-        # TODO: Реализовать рассчет градиентов
-        input_grads = None
+        input_grads = grads * self.out * (1 - self.out)
         return input_grads
 
-    def _train(self):
+    def train(self):
         """Переводит модель в режим обучения"""
         pass
 
-    def _eval(self):
+    def eval(self):
         """Переводит модель в режим оценивания"""
         pass
 
     def __repr__(self):
-        return "Tanh()"
+        return "Sigmoid()"
