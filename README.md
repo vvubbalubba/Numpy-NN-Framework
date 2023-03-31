@@ -1,4 +1,4 @@
 # Numpy-NN-Framework
-Numpy NN Framework, my homework and experiements
+Numpy NN Framework, my homework and experiments
 
-It contents not only my ideas
+It contains not only my ideas
